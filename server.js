@@ -21,7 +21,7 @@ MongoClient.connect(MONGODB_URI, (err, database) => {
   if (err) return console.log(err);
   db = database;
   // let collection = database.collection("urls");
-  const PORT = 8080;
+  const PORT = 3000;
   app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}!`);
   });
@@ -55,7 +55,7 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   const newKey = generateRandomString();
   console.log("POST /urls ", req.body.longUrl);
-  db.collection('urls').insertOne({'shortUrl': newKey, 'longUrl': req.body.longUrl},  (err, result) => {
+  db.collection('urls').insertOne({shortUrl: newKey, longUrl: req.body.longUrl},  (err, result) => {
     res.redirect("/urls/" + newKey);
   });
 });
@@ -69,6 +69,7 @@ app.get("/urls/:id", (req, res) => {
    });
 });
 
+// Update
 app.put("/urls/:id", (req, res) => {
   var shortUrl = req.params.id;
   db.collection('urls').updateOne({'shortUrl': shortUrl}, { $set: {'longUrl': req.body.newLongUrl}}, (err, result) => {
@@ -80,6 +81,7 @@ app.put("/urls/:id", (req, res) => {
 app.get("/u/:shortUrl", (req, res) => {
   var shortUrl = req.params.shortUrl;
   db.collection('urls').findOne({'shortUrl': shortUrl}, (err, result) => {
+    if(err || !result) return res.status(404).send('not found');
     console.log(result);
     res.status(301).redirect(result.longUrl);
   });
@@ -88,7 +90,7 @@ app.get("/u/:shortUrl", (req, res) => {
 // Delete Method Override
 app.delete("/urls/:id", (req, res) => {
   var shortUrl = req.params.id;
-  db.collection('urls').deleteOne({'shortUrl': shortUrl}, (err, result) => {
-  res.redirect("/urls");
+  db.collection('urls').deleteOne({shortUrl: shortUrl}, (err, result) => {
+    res.redirect("/urls");
   });
 });
